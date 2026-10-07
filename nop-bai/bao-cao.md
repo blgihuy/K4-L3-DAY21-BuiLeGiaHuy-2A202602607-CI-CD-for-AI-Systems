@@ -13,11 +13,11 @@ HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau k
 
 | | |
 |---|---|
-| Họ và tên | ___ |
-| MSSV | ___ |
+| Họ và tên | Bùi Lê Gia Huy |
+| MSSV | 2A202602607 |
 | Lớp / Khóa | K4 |
-| Repo GitHub | https://github.com/___/___ |
-| Ngày nộp | ___ |
+| Repo GitHub | https://github.com/blgihuy/K4-L3-DAY21-BuiLeGiaHuy-2A202602607-CI-CD-for-AI-Systems |
+| Ngày nộp | 07/10/2026 |
 
 ---
 
@@ -37,48 +37,28 @@ HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau k
 
 ## 2. Vì Sao Ngưỡng Chất Lượng Đặt Trên F1 Chứ Không Phải Accuracy
 
-<!-- Khoảng 120 - 150 từ. -->
-
-___
-
-<!--
-Cần nêu được:
-  - Phân bố lớp của tập dữ liệu (tỷ lệ lớp thu nhập > 50K) và hệ quả của nó.
-  - Accuracy của một mô hình luôn trả lời "thu nhập thấp" là bao nhiêu, vì sao con số
-    đó gây hiểu nhầm.
-  - F1 của lớp dương đo điều gì mà accuracy không đo được.
-  - Vì sao KHÔNG dùng average="weighted" hay average="macro" khi gọi f1_score.
--->
+Tập dữ liệu Adult có phân bố lớp mất cân bằng nghiêm trọng khi lớp thu nhập cao (thu nhập > 50K) chỉ chiếm 24,8% tổng số mẫu. Do đó, một mô hình tầm thường chỉ cần luôn đoán "thu nhập thấp" cho mọi trường hợp vẫn dễ dàng đạt accuracy lên tới 0,752 (75,2%), tạo ra ảo tưởng về hiệu quả trong khi hoàn toàn thất bại trong việc phát hiện đối tượng mục tiêu. F1-score của riêng lớp dương đóng vai trò trung bình điều hòa giữa Precision và Recall, đo lường chính xác khả năng mô hình vừa không bỏ sót đối tượng thu nhập cao vừa không dự đoán sai lệch. Ta tuyệt đối không sử dụng `average="weighted"` hoặc `average="macro"` vì phép tính trung bình sẽ bị lớp đa số (thu nhập <= 50K) chiếm 75,2% kéo điểm số tăng giả tạo, làm mất đi ý nghĩa giám sát nghiêm ngặt của Quality Gate.
 
 ---
 
 ## 3. Khó Khăn Gặp Phải và Cách Giải Quyết
 
-<!-- Nêu 2 - 3 khó khăn thật, mỗi ô một câu ngắn. -->
-
 | Khó khăn | Nguyên nhân | Cách giải quyết |
 |---|---|---|
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
+| Lệnh tạo Service Account key bị lỗi FAILED_PRECONDITION khiến `sa-key.json` rỗng | Chính sách bảo mật của GCP tổ chức chặn tạo private key (`disableServiceAccountKeyCreation`) | Tận dụng file Application Default Credentials (`application_default_credentials.json`) để xác thực DVC và nạp vào GitHub Secrets |
+| DVC pull trên GitHub Actions báo lỗi 401 Unauthorized | Cấu hình `.dvc/config` tìm `sa-key.json` ở thư mục gốc repo thay vì `/tmp/sa-key.json` | Cập nhật workflow ghi secret ra `sa-key.json` tại thư mục làm việc và bổ sung biến `GOOGLE_CLOUD_PROJECT` |
+| Dịch vụ `income-api` trên VM báo lỗi không unpickle được model | VM cài phiên bản `scikit-learn 1.7.2` mới nhất, xung đột với `scikit-learn 1.4.2` lúc huấn luyện | Hạ phiên bản thư viện trên máy ảo về đúng `scikit-learn==1.4.2` để tương thích hoàn toàn |
 
 ---
 
 ## 4. So Sánh Bước 2 và Bước 3 (bắt buộc, 2 - 3 câu)
 
-<!-- Lấy số liệu từ bảng ở mục 3.6 của tasks/buoc-3.md. -->
-
 | | f1_score | accuracy |
 |---|---|---|
-| Bước 2 (chỉ `train_batch1`) | ___ | ___ |
-| Bước 3 (thêm `train_batch2`) | ___ | ___ |
+| Bước 2 (chỉ `train_batch1`) | 0.7290 | 0.8840 |
+| Bước 3 (thêm `train_batch2`) | 0.7330 | 0.8820 |
 
-**Nhận xét:** ___
-
-<!--
-Một câu trả lời trung thực kiểu "f1 giảm 0,01 vì dữ liệu mới cùng phân phối, không mang
-thêm thông tin mới" được đánh giá cao hơn kết luận sai rằng thêm dữ liệu luôn tốt hơn.
--->
+**Nhận xét:** Khi bổ sung 22.361 mẫu dữ liệu mới ở Bước 3 (tổng cộng 44.722 mẫu huấn luyện), F1-score tăng nhẹ từ 0.7290 lên 0.7330 (+0.0040) trong khi accuracy giữ ổn định quanh 0.8820. Do tập dữ liệu mới có cùng nguồn gốc và phân phối với tập ban đầu nên mô hình không có sự đột biến lớn về hiệu năng, nhưng độ tin cậy được nâng cao. Quan trọng nhất, toàn bộ pipeline CI/CD đã tự động phát hiện thay đổi từ file con trỏ DVC, kích hoạt lại quy trình huấn luyện, vượt qua Quality Gate và triển khai thành công mô hình mới lên VM.
 
 ---
 
