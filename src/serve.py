@@ -19,7 +19,7 @@ def download_model():
     GOOGLE_APPLICATION_CREDENTIALS de xac thuc (duoc dat trong systemd service).
     """
     # TODO 1: Tao storage.Client()
-    client = storage.Client()
+    client = storage.Client(project=os.environ.get("GOOGLE_CLOUD_PROJECT", "ai-lab-21-510904"))
 
     # TODO 2: Lay bucket va blob tuong ung
     bucket = client.bucket(ARTIFACT_BUCKET)
