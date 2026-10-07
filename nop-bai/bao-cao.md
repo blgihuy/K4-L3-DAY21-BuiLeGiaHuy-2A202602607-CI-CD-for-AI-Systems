@@ -23,25 +23,15 @@ HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau k
 
 ## 1. Bộ Siêu Tham Số Đã Chọn và Lý Do
 
-<!-- Khoảng 120 - 150 từ. Điền kết quả thật từ MLflow UI ở Bước 1, tối thiểu 3 lần chạy. -->
-
 | Lần chạy | n_estimators | learning_rate | max_depth | f1_score | accuracy |
 |---|---|---|---|---|---|
-| 1 | ___ | ___ | ___ | ___ | ___ |
-| 2 | ___ | ___ | ___ | ___ | ___ |
-| 3 | ___ | ___ | ___ | ___ | ___ |
+| 1 | 100 | 0.1 | 3 | 0.7109 | 0.8780 |
+| 2 | 50 | 0.05 | 2 | 0.6051 | 0.8460 |
+| 3 | 100 | 0.2 | 3 | 0.7290 | 0.8840 |
 
-**Bộ siêu tham số đã chọn:** `n_estimators=___`, `learning_rate=___`, `max_depth=___`.
+**Bộ siêu tham số đã chọn:** `n_estimators=100`, `learning_rate=0.2`, `max_depth=3`.
 
-**Lý do:** ___
-
-<!--
-Trả lời trong phần Lý do:
-  - Vì sao bộ này tốt hơn các bộ còn lại (dựa trên f1_score, không phải accuracy)?
-  - Lần chạy có accuracy cao nhất có trùng với lần có f1_score cao nhất không?
-    Nếu không, điều đó nói lên điều gì?
-  - Bạn quan sát thấy đánh đổi nào giữa n_estimators và learning_rate?
--->
+**Lý do:** Bộ siêu tham số ở Lần 3 đạt F1-score cao nhất (0.7290), vượt xa ngưỡng chất lượng bắt buộc 0.65 và vượt trội hơn so với các lần chạy còn lại. Trong bài toán phân loại mất cân bằng, F1-score phản ánh chính xác khả năng nhận diện lớp thiểu số (thu nhập > 50K) thay vì bị phóng đại như accuracy. Đáng chú ý ở Lần 2, dù accuracy vẫn giữ mức cao 0.8460 do tỷ lệ lớp chiếm ưu thế kéo điểm lên, F1-score lại sụt giảm nghiêm trọng xuống 0.6051 (không đạt chuẩn), cho thấy accuracy che giấu tình trạng bỏ sót nhiều mẫu dương. Ngoài ra, quan sát thực nghiệm cho thấy Gradient Boosting đòi hỏi sự bù trừ giữa các vòng boosting: khi giữ `n_estimators=100`, việc tăng `learning_rate` từ 0.1 lên 0.2 giúp các cây sửa lỗi hiệu quả hơn trên tập holdout; ngược lại việc giảm đồng thời cả `learning_rate` lẫn số cây ở Lần 2 khiến mô hình bị underfitting rõ rệt.
 
 ---
 
